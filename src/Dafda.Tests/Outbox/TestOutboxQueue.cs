@@ -53,6 +53,7 @@ namespace Dafda.Tests.Outbox
             var metadata = new Metadata()
             {
                 MessageId = "183388b5-a8e9-4cb4-b553-6699632461c7",
+                TenantId = "tenant",
                 CausationId = "183388b5-a8e9-4cb4-b553-6699632461c7",
                 CorrelationId = "183388b5-a8e9-4cb4-b553-6699632461c7"
             };
@@ -62,6 +63,7 @@ namespace Dafda.Tests.Outbox
             var expected = @"{
                             ""messageId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
                             ""type"":""bar"",
+                            ""tenantId"":""tenant"",
                             ""causationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
                             ""correlationId"":""183388b5-a8e9-4cb4-b553-6699632461c7"",
                             ""data"":{

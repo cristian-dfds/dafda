@@ -45,6 +45,11 @@ namespace Dafda.Consuming
         public virtual string CausationId => _metadata.CausationId;
 
         /// <summary>
+        /// The message environment discriminator, used for separation of environments on the same cluster/topic
+        /// </summary>
+        public virtual string TenantId => _metadata.TenantId;
+
+        /// <summary>
         /// Access to message metadata values.
         /// </summary>
         /// <param name="key">A metadata name</param>

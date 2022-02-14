@@ -28,8 +28,9 @@ namespace Dafda.Producing
             var messageId = string.IsNullOrEmpty(headers.MessageId) ? _messageIdGenerator.NextMessageId() : headers.MessageId;
             var metadata = new Metadata( headers.AsEnumerable().ToDictionary( k => k.Key, v => v.Value ) )
             {
-                CausationId = string.IsNullOrEmpty(headers.CausationId) ? messageId : headers.CausationId,
                 CorrelationId = string.IsNullOrEmpty(headers.CorrelationId) ? messageId : headers.CorrelationId,
+                CausationId = string.IsNullOrEmpty(headers.CausationId) ? messageId : headers.CausationId,
+                TenantId = headers.TenantId,
             };
 
             return new PayloadDescriptor(
@@ -47,7 +48,8 @@ namespace Dafda.Producing
             var metadata = new Metadata(headers)
             {
                 CorrelationId = context.CorrelationId,
-                CausationId = context.MessageId
+                CausationId = context.MessageId,
+                TenantId = context.TenantId,
             };
             return Create(message, metadata);
         }

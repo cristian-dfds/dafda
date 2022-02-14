@@ -135,8 +135,9 @@ namespace Dafda.Tests.Producing
             var expected = @"{
                                 ""messageId"":""1"",
                                 ""type"":""bar"",
-                                ""causationId"":""1"",
                                 ""correlationId"":""1"",
+                                ""causationId"":""1"",
+                                ""tenantId"":null,
                                 ""data"":{
                                     ""id"":""dummyId""
                                     }
@@ -171,8 +172,9 @@ namespace Dafda.Tests.Producing
                                 ""messageId"":""1"",
                                 ""type"":""bar"",
                                 ""foo-key"":""foo-value"",
-                                ""causationId"":""1"",
                                 ""correlationId"":""1"",
+                                ""causationId"":""1"",
+                                ""tenantId"":null,
                                 ""data"":{
                                     ""id"":""dummyId""
                                     }
@@ -238,6 +240,7 @@ namespace Dafda.Tests.Producing
                             ""type"":""bar"",
                             ""correlationId"":""my-correlation"",
                             ""causationId"":""1"",
+                            ""tenantId"":null,
                             ""data"":{
                                 ""id"":""0""
                                 }

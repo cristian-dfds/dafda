@@ -68,6 +68,15 @@ namespace Dafda.Consuming
         }
 
         /// <summary>
+        /// The message tenant discriminator, used for separation of tenant applications on the same cluster/topic
+        /// </summary>
+        public string TenantId
+        {
+            get => this[MessageEnvelopeProperties.TenantId];
+            init => this[MessageEnvelopeProperties.TenantId] = value;
+        }
+
+        /// <summary>
         /// Other metadata values are access through this.
         /// </summary>
         /// <param name="key">A metadata key</param>

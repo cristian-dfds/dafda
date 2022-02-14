@@ -16,6 +16,7 @@ namespace Dafda.Tests.Producing
         {
             const string dummyMessageId = "foo_id";
             const string dummyAggregateId = "dummyId";
+            const string dummyTenantId = "tenant_id";
 
             var spy = new KafkaProducerSpy();
             var sut = A.Producer
@@ -32,8 +33,9 @@ namespace Dafda.Tests.Producing
             var expected = $@"{{
                                 ""messageId"":""{dummyMessageId}"",
                                 ""type"":""{DummyType}"",
-                                ""causationId"":""foo_id"",
                                 ""correlationId"":""foo_id"",
+                                ""causationId"":""foo_id"",
+                                ""tenantId"":null,
                                 ""data"":{{
                                     ""aggregateId"":""{dummyAggregateId}""
                                     }}
