@@ -1,7 +1,7 @@
 using System;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
 {
@@ -120,7 +120,7 @@ namespace Dafda.Configuration
             _services.AddTransient(implementationFactory);
         }
 
-        internal void WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+        internal void WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
         {
             _builder.WithConsumerScopeFactory(consumerScopeFactory);
         }
@@ -129,9 +129,32 @@ namespace Dafda.Configuration
         /// Override the default Dafda implementation of <see cref="IIncomingMessageFactory"/>.
         /// </summary>
         /// <param name="incomingMessageFactory">A custom implementation of <see cref="IIncomingMessageFactory"/>.</param>
-        public void WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
+        public void WithIncomingMessageFactory(Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory)
         {
             _builder.WithIncomingMessageFactory(incomingMessageFactory);
+        }
+
+        /// <summary>
+        /// If the <see cref="IIncomingMessageFactory"/> throws an exception during message deserialization, 
+        /// Dafda will create a <see cref="TransportLevelPoisonMessage"/> 
+        /// that can be handled by the consumer instead of throwing an exception.
+        /// Note, if you wish to overwrite the default <see cref="IIncomingMessageFactory"/> you should do so before enabling poison message handling
+        /// </summary>
+        public void WithPoisonMessageHandling()
+        {
+            _builder.WithPoisonMessageHandling();
+        }
+
+        /// <summary>
+        /// Applies a filter that must be evaluated when consuming events.
+        /// If the filter evaluated returns false, the event will not be sent to the registered EventHandler class.
+        /// If the filter evaluated returns true, the event will be sent to the registered EventHandler.
+        /// In either case, the commit logic will continue and the index will be updated.
+        /// </summary>
+        /// <param name="messageFilter">Overridable message filter exposing CanAcceptMessage evaluation.></param>
+        public void WithMessageFilter(MessageFilter messageFilter)
+        {
+            _builder.WithMessageFilter(messageFilter);
         }
 
         /// <summary>

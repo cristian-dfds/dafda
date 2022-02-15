@@ -67,8 +67,9 @@ namespace Dafda.Configuration
                 consumer: new Consumer(
                     configuration.MessageHandlerRegistry,
                     provider.GetRequiredService<IHandlerUnitOfWorkFactory>(),
-                    configuration.ConsumerScopeFactory(provider.GetRequiredService<ILoggerFactory>()),
+                    configuration.ConsumerScopeFactory(provider),
                     provider.GetRequiredService<IUnconfiguredMessageHandlingStrategy>(),
+                    configuration.MessageFilter,
                     configuration.EnableAutoCommit
                 ),
                 configuration.GroupId

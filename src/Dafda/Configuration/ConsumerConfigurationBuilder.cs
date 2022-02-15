@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dafda.Consuming;
+using Dafda.Consuming.MessageFilters;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Dafda.Configuration
@@ -35,9 +37,11 @@ namespace Dafda.Configuration
 
         private ConfigurationSource _configurationSource = ConfigurationSource.Null;
         private IHandlerUnitOfWorkFactory _unitOfWorkFactory;
-        private Func<ILoggerFactory, IConsumerScopeFactory> _consumerScopeFactory;
-        private IIncomingMessageFactory _incomingMessageFactory = new JsonIncomingMessageFactory();
+        private Func<IServiceProvider, IConsumerScopeFactory> _consumerScopeFactory;
+        private Func<IServiceProvider, IIncomingMessageFactory> _incomingMessageFactory = _ => new JsonIncomingMessageFactory();
         private bool _readFromBeginning;
+
+        private MessageFilter _messageFilter = MessageFilter.Default;
 
         public ConsumerConfigurationBuilder WithConfigurationSource(ConfigurationSource configurationSource)
         {
@@ -91,7 +95,7 @@ namespace Dafda.Configuration
             return this;
         }
 
-        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<ILoggerFactory, IConsumerScopeFactory> consumerScopeFactory)
+        internal ConsumerConfigurationBuilder WithConsumerScopeFactory(Func<IServiceProvider, IConsumerScopeFactory> consumerScopeFactory)
         {
             _consumerScopeFactory = consumerScopeFactory;
             return this;
@@ -103,6 +107,10 @@ namespace Dafda.Configuration
             return this;
         }
 
+        public void WithMessageFilter(MessageFilter messageFilter)
+        {
+            _messageFilter = messageFilter;
+        }
 
         public ConsumerConfigurationBuilder RegisterMessageHandler<TMessage, TMessageHandler>(string topic, string messageType)
             where TMessageHandler : IMessageHandler<TMessage>
@@ -111,15 +119,19 @@ namespace Dafda.Configuration
             return this;
         }
 
-        public ConsumerConfigurationBuilder Ignoring(string topic, string messageType)
+        public ConsumerConfigurationBuilder WithIncomingMessageFactory(Func<IServiceProvider, IIncomingMessageFactory> incomingMessageFactory)
         {
-            _messageHandlerRegistry.Register<object, NoOpHandler>(topic, messageType);
+            _incomingMessageFactory = incomingMessageFactory;
             return this;
         }
 
-        public ConsumerConfigurationBuilder WithIncomingMessageFactory(IIncomingMessageFactory incomingMessageFactory)
+        public ConsumerConfigurationBuilder WithPoisonMessageHandling()
         {
-            _incomingMessageFactory = incomingMessageFactory;
+            var inner = _incomingMessageFactory;
+            _incomingMessageFactory = provider => new PoisonAwareIncomingMessageFactory(
+                provider.GetRequiredService<ILogger<PoisonAwareIncomingMessageFactory>>(),
+                inner(provider)
+            );
             return this;
         }
 
@@ -133,22 +145,30 @@ namespace Dafda.Configuration
                 .WithConfigurations(_configurations)
                 .Build();
 
+
             if (_consumerScopeFactory == null)
             {
-                _consumerScopeFactory = loggerFactory => new KafkaBasedConsumerScopeFactory(
-                    loggerFactory: loggerFactory,
-                    configuration: configurations,
-                    topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
-                    incomingMessageFactory: _incomingMessageFactory,
-                    readFromBeginning: _readFromBeginning
-                );
-            }
+                _consumerScopeFactory = provider =>
+                {
+                    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
 
+                    return new KafkaBasedConsumerScopeFactory(
+                        loggerFactory: loggerFactory,
+                        configuration: configurations,
+                        topics: _messageHandlerRegistry.GetAllSubscribedTopics(),
+                        incomingMessageFactory: _incomingMessageFactory(provider),
+                        readFromBeginning: _readFromBeginning
+                    );
+                };
+            }
+            
             return new ConsumerConfiguration(
                 configuration: configurations,
                 messageHandlerRegistry: _messageHandlerRegistry,
                 unitOfWorkFactory: _unitOfWorkFactory,
-                consumerScopeFactory: _consumerScopeFactory
+                consumerScopeFactory: _consumerScopeFactory,
+                incomingMessageFactory: _incomingMessageFactory, 
+                messageFilter: _messageFilter
             );
         }
     }
